@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {Outfit} from 'next/font/google';
+import { ConvexClientProvider } from "./ConvexClientProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "AI Agent Builder Platform",
   description: "The app where you can build AI Agents simply by just drag and drop",
 };
+
+const outfit = Outfit({ subsets: ['latin']})
 
 export default function RootLayout({
   children,
@@ -25,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={outfit.className}
       >
-        {children}
+      <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
   );
