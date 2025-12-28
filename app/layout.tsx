@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import {Outfit} from 'next/font/google';
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { ClerkProvider } from "@clerk/nextjs";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Provider from "./provider";
 
 
 
@@ -19,12 +21,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+     <ClerkProvider>
     <html lang="en">
       <body
         className={outfit.className}
       >
-      <ConvexClientProvider>{children}</ConvexClientProvider>
+      <ConvexClientProvider>
+        <TooltipProvider>
+          <Provider>
+            {children}
+          </Provider>
+        </TooltipProvider>
+        </ConvexClientProvider>
       </body>
     </html>
+    </ClerkProvider>
   );
 }
