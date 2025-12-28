@@ -20,10 +20,15 @@ export const CreateNewUser = mutation({
         email:args.email,
         token:5000
       }
-      const result=await ctx.db.insert('UserTable',userData);
-      return result;
+      const userId = await ctx.db.insert('UserTable',userData);
+      // Return the full user object with _id and token
+      return {
+        _id: userId,
+        ...userData
+      };
     }
     
+    // Return existing user with all fields including token
     return existingUser;
   }
 

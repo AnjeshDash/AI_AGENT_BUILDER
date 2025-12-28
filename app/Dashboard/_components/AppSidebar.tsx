@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useContext } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,74 +20,71 @@ import {
   Headphones,
   LayoutDashboard,
   WalletCards,
-  User,
   User2Icon,
+  Gem,
 } from "lucide-react";
-import { UserAvatar } from "@clerk/nextjs";
+import { UserDetailContext } from "@/app/context/UserDetailContext";
+import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 
 const MenuOptions = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "AI Agents",
-    url: "#",
-    icon: Headphones,
-  },
-  {
-    title: "Data",
-    url: "#",
-    icon: Database,
-  },
-  {
-    title: "Pricing",
-    url: "#",
-    icon: WalletCards,
-  },
-  {
-    title: "Profile",
-    url: "#",
-    icon: User2Icon 
-  },
+  { title: "Dashboard", url: "/Dashboard", icon: LayoutDashboard },
+  { title: "AI Agents", url: "#", icon: Headphones },
+  { title: "Data", url: "#", icon: Database },
+  { title: "Pricing", url: "#", icon: WalletCards },
+  { title: "Profile", url: "#", icon: User2Icon },
 ];
 
 function Appsidebar() {
-  const {open}=useSidebar();
+  const { open } = useSidebar();
+  const { userDetail } = useContext(UserDetailContext);
+  const path = usePathname();
+
   return (
-    <div>
-      <Sidebar collapsible='icon'>
-        <SidebarHeader>
-          <div className="flex gap-2 items-center">
-            <Image src="/logo.svg" alt="Logo" width={35} height={35} />
-            {open&& <h2 className="font-bold text-lg">Agentify</h2>}
-          </div>
-        </SidebarHeader>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <div className="flex gap-2 items-center">
+          <Image src="/logo.svg" alt="Logo" width={35} height={35} />
+          {open && <h2 className="font-bold text-lg">Agentify</h2>}
+        </div>
+      </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Applications</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {MenuOptions.map((menu, index) => (
-                  <SidebarMenuButton key={index} asChild>
-                    <Link href={menu.url} className="flex gap-2 items-center">
-                      <menu.icon />
-                      <span>{menu.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Applications</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {MenuOptions.map((menu, index) => (
+                <SidebarMenuButton
+                  key={index}
+                  asChild
+                  size={open ? "lg" : "default"}
+                  isActive={path === menu.url}   // ✅ FIXED
+                >
+                  <Link href={menu.url} className="flex gap-2 items-center">
+                    <menu.icon />
+                    <span>{menu.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-        <SidebarFooter>
-          <UserAvatar />
-        </SidebarFooter>
-      </Sidebar>
-    </div>
+      <SidebarFooter className="mb-10">
+        <div className="flex gap-2 items-center">
+          <Gem />
+          {open && (
+            <h2 className="text-sm font-medium">
+              Remaining Credits:
+              <span className="font-bold"> {userDetail?.token}</span>
+            </h2>
+          )}
+        </div>
+        {open && <Button>Upgrade to Unlimited</Button>}
+      </SidebarFooter>
+    </Sidebar>
   );
 }
 
