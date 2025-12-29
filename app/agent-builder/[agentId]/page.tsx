@@ -14,14 +14,19 @@ import {
   Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import StartNode from "../_component/StartNode";
-import AgentNode from "../_component/AgentNode";
+import StartNode from "../_customNode/StartNode";
+import AgentNode from "../_customNode/AgentNode";
 import AgentToolsPanel from "../_component/AgentToolsPanel";
 import { WorkflowContext } from "@/app/context/WorkflowContext";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { Agent } from "@/app/types/AgentType";
+import EndNode from "../_customNode/EndNode";
+import IfElseNode from "../_customNode/IfElseNode";
+import WhileNode from "../_customNode/WhileNode";
+import UserApprovalNode from "../_customNode/UserApprovalNode";
+import ApiNode from "../_customNode/ApiNode";
 
 //const initialNodes = [];
 
@@ -32,6 +37,11 @@ const initialEdges = [
 const nodeTypes = {
   StartNode,
   AgentNode,
+  EndNode,
+  IfElseNode,
+  WhileNode,
+  UserApprovalNode,
+  ApiNode
 };
 
 function AgentBuilder() {
