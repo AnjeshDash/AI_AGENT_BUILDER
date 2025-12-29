@@ -30,9 +30,6 @@ import ApiNode from "../_customNode/ApiNode";
 
 //const initialNodes = [];
 
-const initialEdges = [
-  { id: "n1-n2", source: "n1", target: "n2" }
-];
 
 const nodeTypes = {
   StartNode,
@@ -47,6 +44,8 @@ const nodeTypes = {
 function AgentBuilder() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(true);
   const isUpdatingFromContext = useRef(false);
   const prevAddedNodesRef = useRef<any[]>([]);
   const UpdateAgentDetail=useMutation(api.agent.UpdateAgentDetail)
@@ -197,7 +196,6 @@ function AgentBuilder() {
           // Ensure we have valid arrays
           if (!Array.isArray(cleanedNodes) || !Array.isArray(cleanedEdges)) {
             console.error('Cleaned data is not arrays:', { cleanedNodes, cleanedEdges });
-            alert('Error: Failed to clean data for saving');
             return;
           }
           
@@ -215,65 +213,64 @@ function AgentBuilder() {
             nodes: cleanedNodes
           })
           console.log('Saved successfully:', result);
+          setIsSaved(true);
         } catch (error) {
           console.error('Error saving nodes and edges:', error);
         }
       }
 
-      // Auto-save after changes (debounced) and save initial Start node for new agents
-      useEffect(()=>{
-        if (!agentDetail?._id) {
-          return;
-        }
+      const deleteSelectedNode = () => {
+        if (!selectedNodeId) return;
         
-        // For new agents: if we have nodes but DB doesn't, save them immediately
+        // Remove the node
+        setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId));
+        // Remove edges connected to this node
+        setEdges((eds) => eds.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId));
+        setSelectedNodeId(null);
+        setIsSaved(false);
+      }
+
+      // Track changes to mark as unsaved
+      useEffect(() => {
         if (hasLoadedFromDb.current && nodes.length > 0) {
-          const hasNodesInDb = agentDetail.nodes && Array.isArray(agentDetail.nodes) && agentDetail.nodes.length > 0;
-          if (!hasNodesInDb && nodes.length > 0) {
-            // New agent with initial Start node - save it
-            const timeoutId = setTimeout(() => {
-              SaveNodesAndEdges();
-            }, 1000);
-            return () => clearTimeout(timeoutId);
+          // Compare with saved data to detect changes
+          const savedNodes = agentDetail?.nodes || [];
+          const nodesChanged = JSON.stringify(savedNodes) !== JSON.stringify(nodes);
+          const edgesChanged = JSON.stringify(agentDetail?.edges || []) !== JSON.stringify(edges);
+          if (nodesChanged || edgesChanged) {
+            setIsSaved(false);
           }
         }
-        
-        // Don't auto-save if nodes array is empty
-        if (nodes.length === 0) {
-          return;
-        }
-        
-        // Wait a bit after DB loads before allowing auto-save
-        if (!hasLoadedFromDb.current) {
-          const checkDb = setTimeout(() => {
-            hasLoadedFromDb.current = true;
-          }, 1000);
-          return () => clearTimeout(checkDb);
-        }
-        
-        const timeoutId = setTimeout(() => {
-          SaveNodesAndEdges();
-        }, 2000); // Wait 2 seconds after last change before auto-saving
-
-        return () => clearTimeout(timeoutId);
-      },[nodes, edges, agentDetail?._id, agentDetail?.nodes])
+      }, [nodes, edges, agentDetail?.nodes, agentDetail?.edges])
   
   const onNodesChange = useCallback(
     (changes: any) => {
-      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
+      setNodes((nodesSnapshot) => {
+        const updated = applyNodeChanges(changes, nodesSnapshot);
+        // Track if data has changed (not saved)
+        setIsSaved(false);
+        return updated;
+      });
+      // Handle node selection
+      changes.forEach((change: any) => {
+        if (change.type === 'select' && change.selected) {
+          setSelectedNodeId(change.id);
+        } else if (change.type === 'select' && !change.selected) {
+          setSelectedNodeId(null);
+        }
+      });
     },
     []
   );
 
   const onEdgesChange = useCallback(
     (changes: any) =>
-      setEdges((edgesSnapshot) => 
-        { const updated = applyEdgeChanges(changes, edgesSnapshot)
-          setAddedNodes(updated);
-          return updated;
-        }
-  ),
-    [setAddedNodes]
+      setEdges((edgesSnapshot) => {
+        const updated = applyEdgeChanges(changes, edgesSnapshot);
+        setIsSaved(false);
+        return updated;
+      }),
+    []
   );
 
   const onConnect = useCallback(
@@ -292,7 +289,12 @@ function AgentBuilder() {
 
   return (
     <div>
-      <Header agentDetail={agentDetail} onSave={SaveNodesAndEdges}/>
+      <Header 
+        agentDetail={agentDetail} 
+        onSave={SaveNodesAndEdges}
+        onDeleteNode={selectedNodeId ? deleteSelectedNode : undefined}
+        isSaved={isSaved}
+      />
       <div style={{ width: "100vw", height: "90vh" }}>
         <ReactFlow
           nodes={nodes}

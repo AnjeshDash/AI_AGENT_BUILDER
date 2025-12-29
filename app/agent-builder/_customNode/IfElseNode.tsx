@@ -21,7 +21,7 @@ function IfElseNode({data}:any) {
       </div>
       <Handle type='target' position={Position.Left}/>
       <Handle type='source' position={Position.Right} id={'if'}/>
-      <Handle type='source' position={Position.Right}id={'else'}
+      <Handle type='source' position={Position.Right} id={'else'}
       style={handleStyle}/>
     </div>
   )

@@ -23,7 +23,4 @@ function WhileNode({data}:any) {
   )
 }
 
-
-
 export default WhileNode
-WhileNode

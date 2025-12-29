@@ -1,4 +1,4 @@
-import { Background, Handle, Position } from '@xyflow/react'
+import { Handle, Position } from '@xyflow/react'
 import { Webhook } from 'lucide-react'
 import React from 'react'
 

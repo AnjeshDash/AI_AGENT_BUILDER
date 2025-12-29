@@ -29,21 +29,30 @@ function CreateAgentSection() {
   const {userDetail, setUserDetail} = useContext(UserDetailContext);
 
   const CreateAgent=async()=>{
+    if (!userDetail?._id) {
+      console.error('User ID is required to create an agent');
+      setLoader(false);
+      return;
+    }
 
     setLoader(true);
-    const agentId=uuidv4();//Generate unique agent id
-    const result = await CreateAgentMutation({
-      agentId:agentId,
-      name:agentName ?? '',
-      userId:userDetail?._id
+    try {
+      const agentId=uuidv4();//Generate unique agent id
+      const result = await CreateAgentMutation({
+        agentId:agentId,
+        name:agentName ?? '',
+        userId:userDetail._id
+      });
+      console.log(result);
+      setOpenDialogue(false);
+      setLoader(false);
 
-    });
-    console.log(result);
-    setOpenDialogue(false);
-    setLoader(false);
-
-    //Navigate to agent builder Screen
-    router.push('/agent-builder/'+agentId)
+      //Navigate to agent builder Screen
+      router.push('/agent-builder/'+agentId)
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      setLoader(false);
+    }
   }
   
   return (

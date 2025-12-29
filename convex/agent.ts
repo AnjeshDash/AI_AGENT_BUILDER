@@ -43,7 +43,7 @@ export const GetAgentById = query({
     .order('desc')
     .collect();
 
-    return result[0];
+    return result[0] || null;
     
   }
 })

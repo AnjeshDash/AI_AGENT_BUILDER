@@ -21,7 +21,7 @@ function UserApprovalNode({data}:any) {
       </div>
       <Handle type='target' position={Position.Left}/>
       <Handle type='source' position={Position.Right} id={'approve'}/>
-      <Handle type='source' position={Position.Right}id={'reject'}
+      <Handle type='source' position={Position.Right} id={'reject'}
       style={handleStyle}/>
     </div>
   )
