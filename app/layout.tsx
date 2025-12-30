@@ -5,6 +5,7 @@ import { ConvexClientProvider } from "./ConvexClientProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Provider from "./provider";
+import { Toaster } from "@/components/ui/sonner";
 
 
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             {children}
           </Provider>
         </TooltipProvider>
+        <Toaster />
         </ConvexClientProvider>
       </body>
     </html>
