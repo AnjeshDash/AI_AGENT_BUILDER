@@ -346,16 +346,26 @@ function AgentBuilder() {
         }
       }
 
-      const deleteSelectedNode = () => {
-        if (!selectedNodeId) return;
+      const deleteSelectedNode = useCallback((nodeId: string) => {
+        if (!nodeId) return;
         
-        // Remove the node
-        setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId));
+        // Remove the node from local state
+        setNodes((nds) => nds.filter((n) => n.id !== nodeId));
         // Remove edges connected to this node
-        setEdges((eds) => eds.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId));
+        setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+        
+        // Update context
+        if (setAddedNodes && typeof setAddedNodes === 'function') {
+          setAddedNodes((prevNodes: any) => prevNodes.filter((n: any) => n.id !== nodeId));
+        }
+        
+        // Clear selection
         setSelectedNodeId(null);
+        if (setSelectedNode && typeof setSelectedNode === 'function') {
+          setSelectedNode(null);
+        }
         setIsSaved(false);
-      }
+      }, [setAddedNodes, setSelectedNode])
 
       // Track changes to mark as unsaved
       useEffect(() => {
@@ -450,8 +460,15 @@ function AgentBuilder() {
 
   const onNodeClick = useCallback((_event: any, node: any) => {
     console.log('onNodeClick called:', node);
-    handleNodeSelection(node);
-  }, [handleNodeSelection])
+    
+    // If clicking the same node that's already selected, delete it
+    if (selectedNodeId === node.id || selectedNode?.id === node.id) {
+      deleteSelectedNode(node.id);
+    } else {
+      // Otherwise, select the node
+      handleNodeSelection(node);
+    }
+  }, [handleNodeSelection, selectedNodeId, selectedNode, deleteSelectedNode])
 
   console.log('AgentBuilder render - selectedNode:', selectedNode, 'type:', selectedNode?.type);
 
@@ -460,7 +477,6 @@ function AgentBuilder() {
       <Header 
         agentDetail={agentDetail} 
         onSave={SaveNodesAndEdges}
-        onDeleteNode={selectedNodeId ? deleteSelectedNode : undefined}
         isSaved={isSaved}
       />
       <div style={{ width: "100vw", height: "90vh" }}>

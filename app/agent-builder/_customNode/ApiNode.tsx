@@ -14,7 +14,7 @@ function ApiNode({data}:any) {
               backgroundColor:data?.bgColor
         }} />
         <div className='flex flex-col'>
-        <h2>API</h2>
+        <h2>{data?.label}</h2>
         <p className='text-xs text-gray-500'>API</p>
         </div>
       </div>

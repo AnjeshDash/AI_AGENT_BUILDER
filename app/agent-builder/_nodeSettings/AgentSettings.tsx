@@ -82,7 +82,7 @@ function AgentSettings({ selectedNode, updateFormData }: any) {
       <p className="text-gray-500 mt-1">
         Call the AI model with your instruction
       </p>
-      <div className="mt-3 space-y-2">
+      <div className="mt-3 space-y-1">
         <Label>Name</Label>
         <Input 
           placeholder="Agent Name" 

@@ -1,7 +1,6 @@
-
 import { WorkflowContext } from '@/app/context/WorkflowContext';
-import { Merge, MousePointer2, Repeat, Square, ThumbsUp, Webhook, } from 'lucide-react';
-import React, { useContext } from 'react'
+import { Merge, MousePointer2, Repeat, Square, ThumbsUp, Webhook } from 'lucide-react';
+import { useContext } from 'react'
 const AgentTools = [
   {
     name: 'Agent',
@@ -50,7 +49,7 @@ const AgentTools = [
 function AgentToolsPanel() {
 
   const context = useContext(WorkflowContext);
-  const {addedNodes, setAddedNodes} = context || {addedNodes: [], setAddedNodes: () => {}};
+  const { setAddedNodes } = context || { setAddedNodes: () => {} };
 
   const onAgentToolClick=(tool:any)=>{
     if (!setAddedNodes || typeof setAddedNodes !== 'function') {
@@ -65,11 +64,8 @@ function AgentToolsPanel() {
       type:tool.type
     }
     
-    console.log('Adding new node:', newNode);
     setAddedNodes((prev:any)=>{
-      const updated = [...(prev || []), newNode];
-      console.log('Updated nodes in context:', updated);
-      return updated;
+      return [...(prev || []), newNode];
     })
 
   }

@@ -1,7 +1,11 @@
 import { WorkflowContext } from "@/app/context/WorkflowContext";
-import React, { useContext } from "react";
+import { useContext } from "react";
 import AgentSettings from "../_nodeSettings/AgentSettings";
 import EndSettings from "../_nodeSettings/EndSettings";
+import IfElseSettings from "../_nodeSettings/IfElseSettings";
+import WhileSettings from "../_nodeSettings/WhileSettings";
+import UserApproval from "../_nodeSettings/UserApproval";
+import ApiAgentSettings from "../_nodeSettings/ApiSettings";
 
 type SettingPannelProps = {
   onSave?: () => void;
@@ -9,10 +13,9 @@ type SettingPannelProps = {
 
 function SettingPannel({ onSave }: SettingPannelProps) {
   const context = useContext(WorkflowContext);
-  const { selectedNode, setAddedNodes, addedNodes } = context || {
+  const { selectedNode, setAddedNodes } = context || {
     selectedNode: null,
     setAddedNodes: () => {},
-    addedNodes: [],
   };
 
   const onUpdateNodeData = (formData: any, shouldSaveToDb: boolean = false) => {
@@ -20,8 +23,6 @@ function SettingPannel({ onSave }: SettingPannelProps) {
       console.error('Cannot update node: selectedNode or setAddedNodes is missing');
       return;
     }
-
-    console.log('Updating node data:', { nodeId: selectedNode.id, nodeType: selectedNode.type, formData, shouldSaveToDb });
 
     // Update the nodes in context
     setAddedNodes((prevNodes: any) => {
@@ -40,11 +41,6 @@ function SettingPannel({ onSave }: SettingPannelProps) {
               settings: formData,
             },
           };
-          console.log('Updated node with settings:', {
-            id: updatedNode.id,
-            type: updatedNode.type,
-            settings: updatedNode.data.settings
-          });
           return updatedNode;
         }
         return node;
@@ -53,16 +49,7 @@ function SettingPannel({ onSave }: SettingPannelProps) {
       // If shouldSaveToDb is true, trigger the save function with the updated nodes
       if (shouldSaveToDb && onSave) {
         // Use a longer timeout to ensure React has updated the context state
-        // The updatedNodes are already computed, so we can log them immediately
-        console.log('Will trigger database save. Updated nodes with settings:', updatedNodes.map((n: any) => ({
-          id: n.id,
-          type: n.type,
-          hasSettings: !!n.data?.settings,
-          settings: n.data?.settings
-        })));
-        
         setTimeout(() => {
-          console.log('Triggering database save after settings update for node:', selectedNode.id);
           onSave();
         }, 600);
       }
@@ -70,8 +57,6 @@ function SettingPannel({ onSave }: SettingPannelProps) {
       return updatedNodes;
     });
   };
-
-  console.log('SettingPannel - selectedNode:', selectedNode, 'type:', selectedNode?.type);
 
   if (!selectedNode) {
     return null;
@@ -91,10 +76,30 @@ function SettingPannel({ onSave }: SettingPannelProps) {
           selectedNode={selectedNode}
           updateFormData={(formData: any) => onUpdateNodeData(formData, true)}
         />
-      ) : (
-        <div className="text-gray-500 text-center py-10">
-          Settings for {nodeType || 'unknown'} are not available yet
-        </div>
+      ) : null}
+      {selectedNode?.type === 'IfElseNode' && (
+        <IfElseSettings
+          selectedNode={selectedNode}
+          updateFormData={(formData: any) => onUpdateNodeData(formData, true)}
+        />
+      )}
+      {selectedNode?.type === 'WhileNode' && (
+        <WhileSettings
+          selectedNode={selectedNode}
+          updateFormData={(formData: any) => onUpdateNodeData(formData, true)}
+        />
+      )}
+      {selectedNode?.type === 'UserApprovalNode' && (
+        <UserApproval
+          selectedNode={selectedNode}
+          updateFormData={(formData: any) => onUpdateNodeData(formData, true)}
+        />
+      )}
+      {selectedNode?.type === 'ApiNode' && (
+        <ApiAgentSettings
+          selectedNode={selectedNode}
+          updateFormData={(formData: any) => onUpdateNodeData(formData, true)}
+        />
       )}
     </div>
   );
