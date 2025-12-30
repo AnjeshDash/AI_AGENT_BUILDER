@@ -10,13 +10,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { FileJson } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 function AgentSettings({ selectedNode, updateFormData }: any) {
-
   const [formData,setFormData ] = useState({
     name:'',
     instruction:'',
@@ -24,24 +23,36 @@ function AgentSettings({ selectedNode, updateFormData }: any) {
     model:'gemini-flash-1.5',
     output:'text',
     schema:''
-
   })
+  const isSavingRef = useRef(false);
+  const prevNodeIdRef = useRef<string | null>(null);
 
   useEffect(()=>{
-    if (selectedNode?.data?.settings) {
-      setFormData(selectedNode.data.settings);
-    } else {
-      // Reset to defaults if no settings exist
-      setFormData({
-        name: selectedNode?.data?.label || '',
-        instruction:'',
-        includeHistory:true,
-        model:'gemini-flash-1.5',
-        output:'text',
-        schema:''
-      });
+    const currentNodeId = selectedNode?.id;
+    const hasNodeChanged = currentNodeId !== prevNodeIdRef.current;
+    
+    if (hasNodeChanged) {
+      prevNodeIdRef.current = currentNodeId;
+      isSavingRef.current = false;
     }
-  },[selectedNode])
+    
+    if (!isSavingRef.current) {
+      if (selectedNode?.data?.settings) {
+        console.log('Loading Agent settings from selectedNode:', selectedNode.data.settings);
+        setFormData(selectedNode.data.settings);
+      } else if (hasNodeChanged) {
+        // Reset to defaults if no settings exist (only on new node selection)
+        setFormData({
+          name: selectedNode?.data?.label || '',
+          instruction:'',
+          includeHistory:true,
+          model:'gemini-flash-1.5',
+          output:'text',
+          schema:''
+        });
+      }
+    }
+  },[selectedNode?.id, selectedNode?.data?.settings])
 
   const handleChange=(key:string,value:any)=>{
     setFormData((prev)=>({
@@ -50,9 +61,20 @@ function AgentSettings({ selectedNode, updateFormData }: any) {
     }))
   }
   const onSave=()=>{
-    console.log(formData);
-    updateFormData(formData)
-    toast.success("Settings Updated!")
+    if (!updateFormData) {
+      console.error('updateFormData is not available');
+      toast.error('Failed to save settings');
+      return;
+    }
+    console.log('Saving Agent settings:', formData);
+    isSavingRef.current = true;
+    updateFormData(formData);
+    toast.success("Settings saved to database!");
+    
+    // Reset the saving flag after a delay to allow the update to complete
+    setTimeout(() => {
+      isSavingRef.current = false;
+    }, 500);
   }
   return (
     <div>

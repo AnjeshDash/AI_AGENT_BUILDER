@@ -12,8 +12,6 @@ import {
   Panel,
   Edge,
   Node,
-  useOnSelectionChange,
-  OnSelectionChangeParams,
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -89,11 +87,19 @@ function AgentBuilder() {
   const isUpdatingFromContext = useRef(false);
   const prevAddedNodesRef = useRef<any[]>([]);
   const hasFittedView = useRef(false);
+  const latestAddedNodesRef = useRef<any[]>([]);
   const UpdateAgentDetail=useMutation(api.agent.UpdateAgentDetail)
 
       const context = useContext(WorkflowContext);
       const {agentId} = useParams();
       const {addedNodes, setAddedNodes, nodeEdges, setNodeEdges, setSelectedNode, selectedNode} = context || {addedNodes: [], setAddedNodes: () => {}, selectedNode: null}
+      
+      // Keep ref in sync with context
+      useEffect(() => {
+        if (addedNodes && Array.isArray(addedNodes)) {
+          latestAddedNodesRef.current = addedNodes;
+        }
+      }, [addedNodes])
       const agentDetail = useQuery(
         api.agent.GetAgentById,
         agentId ? { agentId: agentId as string } : "skip"
@@ -105,6 +111,7 @@ function AgentBuilder() {
         if (agentDetail && !hasLoadedFromDb.current) {
           // Load nodes from database if they exist and have content
           if (agentDetail.nodes && Array.isArray(agentDetail.nodes) && agentDetail.nodes.length > 0) {
+            console.log('Loading nodes from database:', agentDetail.nodes);
             isUpdatingFromContext.current = true;
             setNodes(agentDetail.nodes);
             prevAddedNodesRef.current = agentDetail.nodes;
@@ -131,6 +138,19 @@ function AgentBuilder() {
           }
         }
       }, [agentDetail, addedNodes, setAddedNodes])
+
+      // Update selectedNode when nodes are loaded to ensure it has latest settings
+      useEffect(() => {
+        if (selectedNode && nodes.length > 0 && hasLoadedFromDb.current) {
+          const updatedNode = nodes.find((n: any) => n.id === selectedNode.id);
+          if (updatedNode && JSON.stringify(updatedNode) !== JSON.stringify(selectedNode)) {
+            console.log('Updating selectedNode with latest data from nodes:', updatedNode);
+            if (setSelectedNode && typeof setSelectedNode === 'function') {
+              setSelectedNode(updatedNode);
+            }
+          }
+        }
+      }, [nodes, selectedNode, setSelectedNode])
 
       // Sync from context to local state
       useEffect(()=>{
@@ -166,19 +186,21 @@ function AgentBuilder() {
             console.log('Syncing nodes from context to local state', addedNodes);
             isUpdatingFromContext.current = true;
             
-            // Merge context nodes with local nodes to preserve positions
+            // Merge context nodes with local nodes to preserve positions AND settings
             const mergedNodes = addedNodes.map((contextNode: any) => {
               const localNode = nodes.find((n: any) => n.id === contextNode.id);
               if (localNode && localNode.position) {
                 // Preserve position from local state if it exists
+                // But prioritize settings from context (which are the latest)
                 return {
-                  ...contextNode,
-                  position: localNode.position,
+                  ...contextNode, // This includes the latest settings from context
+                  position: localNode.position, // Preserve position from local
                   // Also preserve other ReactFlow-specific properties
                   selected: localNode.selected,
                   dragging: localNode.dragging,
                 };
               }
+              // If no local node, use context node (which has latest settings)
               return contextNode;
             });
             
@@ -260,14 +282,27 @@ function AgentBuilder() {
         }
         
         // Sync latest nodes from context before saving to ensure all settings are included
-        let nodesToSave = nodes;
-        if (addedNodes && Array.isArray(addedNodes) && addedNodes.length > 0) {
-          // Use the latest nodes from context which includes any settings updates
-          nodesToSave = addedNodes;
-          // Also update local state to keep them in sync
+        // Use ref to get the absolute latest nodes (even if context hasn't re-rendered yet)
+        const latestNodes = latestAddedNodesRef.current.length > 0 
+          ? latestAddedNodesRef.current 
+          : (addedNodes && Array.isArray(addedNodes) && addedNodes.length > 0 ? addedNodes : nodes);
+        
+        let nodesToSave = latestNodes;
+        
+        console.log('Saving - Using nodes. Checking settings:', 
+          nodesToSave.map((n: any) => ({
+            id: n.id,
+            type: n.type,
+            hasSettings: !!n.data?.settings,
+            settings: n.data?.settings
+          }))
+        );
+        
+        // Also update local state to keep them in sync
+        if (nodesToSave !== nodes) {
           isUpdatingFromContext.current = true;
-          setNodes(addedNodes);
-          prevAddedNodesRef.current = addedNodes;
+          setNodes(nodesToSave);
+          prevAddedNodesRef.current = nodesToSave;
         }
         
         if (!Array.isArray(nodesToSave) || !Array.isArray(edges)) {
@@ -385,16 +420,40 @@ function AgentBuilder() {
     []
   );
 
-  const onNodeSelect = useCallback(({nodes,edges}:OnSelectionChangeParams)=>{
-      if (setSelectedNode && typeof setSelectedNode === 'function') {
-        setSelectedNode(nodes[0] || null);
-        console.log('Selected node:', nodes[0]);
-      }
-  },[setSelectedNode])
+  const handleNodeSelection = useCallback((node: any) => {
+    console.log('handleNodeSelection called:', node);
+    if (setSelectedNode && typeof setSelectedNode === 'function' && node) {
+      // Find the complete node from local state or context to get all settings
+      const selectedNodeId = node.id;
+      const completeNode = nodes.find((n: any) => n.id === selectedNodeId) 
+        || addedNodes?.find((n: any) => n.id === selectedNodeId)
+        || node;
+      
+      console.log('Setting selectedNode:', completeNode);
+      setSelectedNode(completeNode);
+    }
+  }, [setSelectedNode, nodes, addedNodes]);
 
-  useOnSelectionChange({
-    onChange:onNodeSelect
-  })
+  const onSelectionChange = useCallback(({nodes: selectedNodes}: any)=>{
+      console.log('onSelectionChange called:', { selectedNodes, hasSetSelectedNode: !!setSelectedNode });
+      if (setSelectedNode && typeof setSelectedNode === 'function') {
+        if (selectedNodes && selectedNodes.length > 0) {
+          handleNodeSelection(selectedNodes[0]);
+        } else {
+          console.log('Deselecting node');
+          setSelectedNode(null);
+        }
+      } else {
+        console.error('setSelectedNode is not available or not a function');
+      }
+  },[setSelectedNode, handleNodeSelection])
+
+  const onNodeClick = useCallback((_event: any, node: any) => {
+    console.log('onNodeClick called:', node);
+    handleNodeSelection(node);
+  }, [handleNodeSelection])
+
+  console.log('AgentBuilder render - selectedNode:', selectedNode, 'type:', selectedNode?.type);
 
   return (
     <div>
@@ -412,6 +471,8 @@ function AgentBuilder() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgeClick={onEdgeClick}
+          onNodeClick={onNodeClick}
+          onSelectionChange={onSelectionChange}
           nodeTypes={nodeTypes}
         >
           <FitViewHelper nodes={nodes} agentDetail={agentDetail} />
@@ -424,7 +485,7 @@ function AgentBuilder() {
           </Panel>
           {selectedNode && (
             <Panel position='top-right'>
-              <SettingPannel/>
+              <SettingPannel onSave={SaveNodesAndEdges}/>
             </Panel>
           )}
         </ReactFlow>
