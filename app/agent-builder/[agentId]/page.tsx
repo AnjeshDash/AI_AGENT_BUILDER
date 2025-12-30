@@ -34,7 +34,7 @@ import { toast } from "sonner";
 //const initialNodes = [];
 
 
-const nodeTypes = {
+export const nodeTypes = {
   StartNode,
   AgentNode,
   EndNode,

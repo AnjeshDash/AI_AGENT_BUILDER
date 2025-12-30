@@ -1,13 +1,16 @@
 import { Agent } from '@/app/types/AgentType'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, Code2, Play, Save } from 'lucide-react'
+import { ChevronLeft, Code2, Play, Save, X } from 'lucide-react'
+import Link from 'next/link'
 
 type Props={
   agentDetail:Agent|undefined
   onSave?: () => void
   isSaved?: boolean
+  previewHeader?:boolean
+
 }
-function Header({agentDetail, onSave, isSaved = true}:Props) {
+function Header({agentDetail, onSave, isSaved = true,previewHeader=false}:Props) {
   return (
     <div className='w-full p-3 flex items-center justify-between'>
       <div className='flex gap-2 items-center'>
@@ -28,7 +31,12 @@ function Header({agentDetail, onSave, isSaved = true}:Props) {
           </Button>
         )}
         <Button variant={'ghost'}><Code2/>Code</Button>
+        {!previewHeader?<Link href={`/agent-builder/${agentDetail?.agentId}/preview`}>
         <Button><Play/> Preview </Button>
+        </Link>:
+        <Link href={`/agent-builder/${agentDetail?.agentId}`}>
+        <Button variant={'outline'}><X/>Close Preview </Button>
+        </Link>}
         <Button>Publish</Button>
       </div>
     </div>
