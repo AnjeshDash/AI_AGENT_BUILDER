@@ -33,17 +33,6 @@ import { toast } from "sonner";
 
 //const initialNodes = [];
 
-
-export const nodeTypes = {
-  StartNode,
-  AgentNode,
-  EndNode,
-  IfElseNode,
-  WhileNode,
-  UserApprovalNode,
-  ApiNode
-};
-
 // Helper component to handle fitView after nodes are loaded
 function FitViewHelper({ nodes, agentDetail }: { nodes: Node[], agentDetail: Agent | undefined | null }) {
   const { fitView } = useReactFlow();
@@ -88,7 +77,17 @@ function AgentBuilder() {
   const prevAddedNodesRef = useRef<any[]>([]);
   const hasFittedView = useRef(false);
   const latestAddedNodesRef = useRef<any[]>([]);
-  const UpdateAgentDetail=useMutation(api.agent.UpdateAgentDetail)
+  const UpdateAgentDetail=useMutation(api.agent.UpdateAgentDetail);
+
+  const nodeTypes = {
+    StartNode,
+    AgentNode,
+    EndNode,
+    IfElseNode,
+    WhileNode,
+    UserApprovalNode,
+    ApiNode
+  };
 
       const context = useContext(WorkflowContext);
       const {agentId} = useParams();

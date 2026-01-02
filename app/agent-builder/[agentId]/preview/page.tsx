@@ -5,7 +5,6 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useParams } from "next/navigation";
 import { ReactFlow, Background, Controls, MiniMap } from "@xyflow/react";
-import { nodeTypes } from "../page";
 import { Agent } from "@/app/types/AgentType";
 import "@xyflow/react/dist/style.css";
 import axios from "axios";
@@ -13,8 +12,24 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import ChatUI from "./_components/ChatUI";
+import StartNode from "../../_customNode/StartNode";
+import AgentNode from "../../_customNode/AgentNode";
+import EndNode from "../../_customNode/EndNode";
+import IfElseNode from "../../_customNode/IfElseNode";
+import WhileNode from "../../_customNode/WhileNode";
+import UserApprovalNode from "../../_customNode/UserApprovalNode";
+import ApiNode from "../../_customNode/ApiNode";
 
 function PreviewAgent() {
+  const nodeTypes = {
+    StartNode,
+    AgentNode,
+    EndNode,
+    IfElseNode,
+    WhileNode,
+    UserApprovalNode,
+    ApiNode
+  };
   const { agentId } = useParams();
   const [flowConfig, setFlowConfig] = React.useState<any>(null);
   const [loading, setLoading] = useState(false);
