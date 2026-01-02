@@ -29,10 +29,10 @@ import { usePathname } from "next/navigation";
 
 const MenuOptions = [
   { title: "Dashboard", url: "/Dashboard", icon: LayoutDashboard },
-  { title: "AI Agents", url: "#", icon: Headphones },
-  { title: "Data", url: "#", icon: Database },
-  { title: "Pricing", url: "#", icon: WalletCards },
-  { title: "Profile", url: "#", icon: User2Icon },
+  { title: "AI Agents", url: "/Dashboard", icon: Headphones },
+  { title: "Data", url: "/Dashboard/data", icon: Database },
+  { title: "Pricing", url: "/Dashboard/pricing", icon: WalletCards },
+  { title: "Profile", url: "/Dashboard/profile", icon: User2Icon },
 ];
 
 function Appsidebar() {

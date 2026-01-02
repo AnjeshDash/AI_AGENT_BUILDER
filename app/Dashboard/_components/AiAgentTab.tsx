@@ -1,6 +1,7 @@
 import React from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Myagents from './Myagents'
+import Templates from './Templates'
 
 function AiAgentTab() {
   return (
@@ -11,7 +12,7 @@ function AiAgentTab() {
           <TabsTrigger value="template">Templates</TabsTrigger>
         </TabsList>
         <TabsContent value="myagent"><Myagents/></TabsContent>
-        <TabsContent value="template">Templates</TabsContent>
+        <TabsContent value="template"><Templates/></TabsContent>
       </Tabs>
       
     </div>

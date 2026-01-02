@@ -16,6 +16,18 @@ export default defineSchema({
     nodes: v.optional(v.any()),
     edges: v.optional(v.any()),
     published: v.boolean(),
-    userId:v.id('UserTable')
-  })
+    userId:v.id('UserTable'),
+    agentToolConfig:v.optional(v.any())
+  }),
+
+  DataTable: defineTable({
+    name: v.string(),
+    type: v.string(), // 'file', 'api', 'database', 'text'
+    content: v.optional(v.any()),
+    url: v.optional(v.string()),
+    size: v.optional(v.number()),
+    mimeType: v.optional(v.string()),
+    userId: v.id('UserTable'),
+    description: v.optional(v.string())
+  }).index("by_user", ["userId"])
 })

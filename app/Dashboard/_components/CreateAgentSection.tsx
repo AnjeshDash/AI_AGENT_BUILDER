@@ -18,6 +18,7 @@ import { api } from '@/convex/_generated/api'
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation'
 import { UserDetailContext } from '@/app/context/UserDetailContext'
+import { toast } from 'sonner';
 
 
 function CreateAgentSection() {
@@ -28,29 +29,21 @@ function CreateAgentSection() {
   const [loader, setLoader] = useState(false);
   const {userDetail, setUserDetail} = useContext(UserDetailContext);
 
-  const CreateAgent=async()=>{
-    if (!userDetail?._id) {
-      console.error('User ID is required to create an agent');
-      setLoader(false);
-      return;
-    }
+  const CreateAgent = async () => {
+    if (!userDetail?._id) return toast.error('User ID is required to create an agent');
+    if (!agentName.trim()) return toast.error('Please enter an agent name');
 
     setLoader(true);
     try {
-      const agentId=uuidv4();//Generate unique agent id
-      const result = await CreateAgentMutation({
-        agentId:agentId,
-        name:agentName ?? '',
-        userId:userDetail._id
-      });
-      console.log(result);
+      const agentId = uuidv4();
+      await CreateAgentMutation({ agentId, name: agentName.trim(), userId: userDetail._id });
       setOpenDialogue(false);
-      setLoader(false);
-
-      //Navigate to agent builder Screen
-      router.push('/agent-builder/'+agentId)
-    } catch (error) {
-      console.error('Error creating agent:', error);
+      setAgentName("");
+      toast.success('Agent created successfully!');
+      router.push('/agent-builder/' + agentId);
+    } catch (error: any) {
+      toast.error('Failed to create agent: ' + (error.message || 'Unknown error'));
+    } finally {
       setLoader(false);
     }
   }
