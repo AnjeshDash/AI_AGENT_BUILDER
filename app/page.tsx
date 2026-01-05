@@ -165,7 +165,7 @@ export default function Home() {
       {/* Benefits Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-muted/50 rounded-3xl my-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+    <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Why Choose Agentify?
             </h2>
@@ -271,5 +271,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  );
+    );
 }
